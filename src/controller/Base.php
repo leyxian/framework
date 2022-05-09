@@ -18,7 +18,17 @@ class Base {
     {
         $get = Request::except(['-table', 'page', 'limit'], 'get');
         $pageSize = Request::get('limit');
-        $list = Db::name($this->_table)->where($get)->order('id desc')->paginate($pageSize);
+        $scheam = $this->getTableScheamInfo();
+        $where = [];
+        foreach($get as $k => $g){
+            if(in_array($k, $scheam['fields'])){
+                if($scheam['type'][$k]=='string')
+                    $where[] = [$k, 'like', '%'.$g.'%'];
+                else
+                    $where[] = [$k, '=', $g];
+            }
+        }
+        $list = Db::name($this->_table)->where($where)->order('id desc')->paginate($pageSize);
 
         return json(['code'=>1, 'msg'=>'查询成功', 'data'=>$list->toArray()]);
     }
