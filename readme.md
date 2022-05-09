@@ -11,4 +11,7 @@ composer require echodao\framework
 ### 请求说明
 requrest header或者param 加入-table参数 直接实现表的 index、save、read、update、delete 接口操作
 
-默认路由 表名/操作名
+默认路由 表名（虽然可以任意）/操作名
+
+### 权限说明
+可以在权限认证中间件检测 -table 参数实现对于权限的识别判断，请将权限认证中间件至于本类中间件之前。
