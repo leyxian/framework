@@ -16,7 +16,6 @@ class Base {
 
     public function index()
     {
-        return json($this->getTableScheamInfo());
         $get = Request::except(['-table', 'page', 'limit'], 'get');
         $pageSize = Request::get('limit');
         $list = Db::name($this->_table)->where($get)->order('id desc')->paginate($pageSize);
