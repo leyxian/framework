@@ -18,9 +18,9 @@ class Table
                 $instance = new Base;
                 if($method->isPublic())
                     return app('edao\controller\Base')->$action();
-            }catch( \Exception $e ){
-
-            }            
+            }catch( \ReflectionException $e ){
+                
+            }
         }
         return $next($request);
     }

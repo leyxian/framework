@@ -12,6 +12,8 @@ class Base {
     public function __construct()
     {
         $this->_table = Request::header('-table') ?? Request::param('-table');
+        $info = Db::name($this->_table)->getSchemaInfo();
+        echo json_encode($info);
     }
 
     public function index()
