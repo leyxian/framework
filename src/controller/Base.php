@@ -12,12 +12,11 @@ class Base {
     public function __construct()
     {
         $this->_table = Request::header('-table') ?? Request::param('-table');
-        $info = Db::name($this->_table)->getSchemaInfo();
-        echo json_encode($info);
     }
 
     public function index()
     {
+        return json($this->getTableScheamInfo());
         $get = Request::except(['-table', 'page', 'limit'], 'get');
         $pageSize = Request::get('limit');
         $list = Db::name($this->_table)->where($get)->order('id desc')->paginate($pageSize);
@@ -52,11 +51,12 @@ class Base {
         $id = Request::get('id');
         $result = Db::name($this->_table)->save($post);
         return json($result ? ['code'=>1, 'msg'=>'更新成功'] : ['code'=>0, 'msg'=>'更新失败']);
-    }
+    }   
 
     public function delete()
     {
         $id = Request::post('id');
+        $force = Request::post('force', '');
 
         $validate = Validate::rule([
             'id' => 'required'
@@ -64,10 +64,30 @@ class Base {
         if(!$validate->check(Request::post()))
             return json(['code'=>0, 'msg'=>$validate->getError()]);
 
-        $result = Db::name($this->_table)
-            ->where('id', $id)
-            // ->useSoftDelete('delete_time',time())
-            ->delete($id);
+        $scheam = $this->getTableScheamInfo();
+        $deleteTime = ''; $deleteTimeType = '';
+        if(!$force){
+            if(in_array('delete_time', $scheam['fields'])){
+                $deleteTime = 'delete_time';
+                $deleteTimeType = $scheam['fields']['type'][$deleteTime];
+            }
+        }
+        if($deleteTime){
+            $result = Db::name($this->_table)
+                ->where('id', $id)
+                ->useSoftDelete($deleteTime, $deleteTimeType=='int' ? time() : date("Y-m-d H:i:s"))
+                ->delete($id);
+        }else{
+            $result = Db::name($this->_table)
+                ->where('id', $id)
+                ->delete($id);
+        }
         return json($result ? ['code'=>1, 'msg'=>'删除成功'] : ['code'=>0, 'msg'=>'删除失败']);
+    }
+
+    private function getTableScheamInfo()
+    {
+        $model = Db::name($this->_table);
+        return Db::connect()->getSchemaInfo($model->getTable());
     }
 }
