@@ -15,11 +15,10 @@ class Table
             $action = $request->action();
             try{
                 $method = new ReflectionMethod('edao\controller\Base', $action);
-                $instance = new Base;
                 if($method->isPublic())
                     return app('edao\controller\Base')->$action();
             }catch( \ReflectionException $e ){
-                
+
             }
         }
         return $next($request);
