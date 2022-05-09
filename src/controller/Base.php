@@ -26,6 +26,28 @@ class Base {
     public function save()
     {
         $post = Request::except(['-table'], 'post');
+
+        $createTime = $createTimeType = $updateTime = $updateTimeType = '';
+        $scheam = $this->getTableScheamInfo();
+        $times = ['create_time', 'create_at'];
+        foreach($times as $t){
+            if(in_array($t, $scheam['fields'])){
+                $createTime = $t;
+                $createTimeType = $scheam['type'][$updateTime];
+            }
+        }        
+        $times = ['update_time', 'update_at'];
+        foreach($times as $t){
+            if(in_array($t, $scheam['fields'])){
+                $updateTime = $t;
+                $updateTimeType = $scheam['type'][$updateTime];
+            }
+        }
+        if($createTime)
+            $post[$createTime] = $createTimeType == 'int' ? time() : date('Y-m-d H:i:s');
+        if($updateTime)
+            $post[$updateTime] = $updateTimeType == 'int' ? time() : date('Y-m-d H:i:s');
+        
         $id = Db::name($this->_table)->insertGetId($post);
         return json($id ? ['code'=>1, 'msg'=>'添加成功', 'data'=>['id'=>$id]] : ['code'=>0, 'msg'=>'添加失败']);
     }
@@ -50,6 +72,18 @@ class Base {
             return json(['code'=>0, 'msg'=>$validate->getError()]);
 
         $id = Request::get('id');
+
+        $times = ['update_time', 'update_at'];
+        $updateTime = ''; $updateTimeType = '';
+        foreach($times as $t){
+            if(in_array($t, $scheam['fields'])){
+                $updateTime = $t;
+                $updateTimeType = $scheam['type'][$updateTime];
+            }
+        }
+        if($updateTime)
+            $post[$updateTime] = $updateTimeType == 'int' ? time() : date('Y-m-d H:i:s');
+
         $result = Db::name($this->_table)->save($post);
         return json($result ? ['code'=>1, 'msg'=>'更新成功'] : ['code'=>0, 'msg'=>'更新失败']);
     }   
@@ -86,6 +120,11 @@ class Base {
                 ->delete($id);
         }
         return json($result ? ['code'=>1, 'msg'=>'删除成功'] : ['code'=>0, 'msg'=>'删除失败']);
+    }
+
+    public function test()
+    {
+        return json($this->getTableScheamInfo());
     }
 
     private function getTableScheamInfo()
