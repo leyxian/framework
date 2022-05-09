@@ -42,8 +42,10 @@ class Base {
     {
         $post = Request::except(['-table'], 'post');
 
+        $scheam = $this->getTableScheamInfo();
+
         $validate = Validate::rule([
-            'id' => 'required'
+            $scheam['pk'] => 'required'
         ]);
         if(!$validate->check($post))
             return json(['code'=>0, 'msg'=>$validate->getError()]);
@@ -58,8 +60,10 @@ class Base {
         $id = Request::post('id');
         $force = Request::post('force', '');
 
+        $scheam = $this->getTableScheamInfo();
+
         $validate = Validate::rule([
-            'id' => 'required'
+            $scheam['pk'] => 'required'
         ]);
         if(!$validate->check(Request::post()))
             return json(['code'=>0, 'msg'=>$validate->getError()]);
