@@ -7,6 +7,7 @@ use think\facade\Validate;
 
 class Base {
 
+    // 表
     private $_table = '';
 
     public function __construct()
