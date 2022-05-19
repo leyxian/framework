@@ -45,18 +45,35 @@ class Migrate extends Command
             $adapter = AdapterFactory::instance()->getAdapter($options['adapter'] ?? '', $options);
             $table = new Table($tableName, $tableSchema['options']??[], $adapter);
             $scheamInfo = $table->exists() ? Db::connect($connection)->getSchemaInfo($tableName, true) : [];
+            // var_dump($scheamInfo); die;
             foreach($tableSchema['columns'] as $col){
-                if(!$table->exists() || !$table->hasColumn($col['name']))
-                    $table->addColumn($col['name'], $col['type'], $col['options']);
+                if(!$table->exists() || !$table->hasColumn($col['column']))
+                    $table->addColumn($col['column'], $col['type'], $col['options']??[]);
                 else
-                    $table->changeColumn($col['name'], $col['type'], $col['options']);
-                foreach($scheamInfo['fields'] as $ke => $field){
-                    if($col['name'] == $field)
-                        unset($scheamInfo['fields'][$ke]);
+                    $table->changeColumn($col['column'], $col['type'], $col['options']??[]);
+                if($scheamInfo){
+                    foreach($scheamInfo['fields'] as $ke => $field){
+                        if($col['column'] == $field )
+                            unset($scheamInfo['fields'][$ke]);
+                    }
                 }
             }
-            if($scheamInfo['fields']){
+            if(isset($tableSchema['indexes']) && $tableSchema['indexes']){
+                foreach($tableSchema['indexes'] as $index){
+                    if(!$table->exists() || !$table->hasIndex($index['name']))
+                        $table->addIndex($index['columns'], $index['options']??[]);
+                }
+            }
+            if(isset($tableSchema['foreignkeys']) && $tableSchema['foreignkeys']){
+                foreach($tableSchema['foreignkeys'] as $index){
+                    if(!$table->exists() || !$table->hasIndex($index['name']))
+                        $table->addForeignKey($index['columns'], $index['referencedTable'], $index['referencedColumns']??['id'], $index['options'] ??[]);
+                }
+            }
+            if($scheamInfo && $scheamInfo['fields']){
+                $pk = is_array($scheamInfo['pk']) ?? [$scheamInfo['pk']];
                 foreach($scheamInfo['fields'] as $field) {
+                    if(in_array($field, $pk)) continue;
                     $table->removeColumn($field);
                     Log::record('conn: '.$connection.' table: '.$tableName.' column: '.$field.' remove '.json_encode($scheamInfo['type'][$field]));
                 }
