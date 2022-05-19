@@ -11,6 +11,29 @@ composer require echodao\framework
 ### 请求说明
 requrest header或者param 加入-table参数 直接实现表的 index、save、read、update、delete 接口操作
 
+### 根据模型字段定义修改表，参数参考 think-migrate
+在模型实现 getTableSchema 方法
+
+```php
+public function getTableSchema()
+{
+    return [
+        'name' => 'test',
+        'columns' => [
+            ['name'=> 'test', 'type'=>'string', 'options'=>['limit'=>50]],
+            ['name'=> 'create_time', 'type'=>'integer', 'options'=>['null'=> true, 'comment'=>'添加时间']],
+        ]
+    ];
+}
+```
+
+执行命令 php think migrate:model --model app\\model\\test 实现表的创建与修改
+
+创建表请在模型加入代码，否则会报错
+```php
+protected $autoWriteTimestamp = false;
+```
+
 默认路由 表名（虽然可以任意）/操作名
 
 ### 权限说明
