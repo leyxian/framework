@@ -36,7 +36,7 @@ public function getTableSchema()
 
 执行命令 php think migrate:model --model app\\model\\test 实现表的创建与修改
 
-创建表请在模型加入代码，否则会报错
+创建表时请在模型加入代码，否则会报错
 ```php
 protected $autoWriteTimestamp = false;
 ```
