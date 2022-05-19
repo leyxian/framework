@@ -5,12 +5,14 @@
 ### 下载安装
 composer require echodao\framework
 
+# 功能一
 ### 引入方法
 加入中间件 edao\middleware\Table
 
 ### 请求说明
 requrest header或者param 加入-table参数 直接实现表的 index、save、read、update、delete 接口操作
 
+# 功能二
 ### 根据模型字段定义修改表，参数参考 think-migrate
 在模型实现 getTableSchema 方法
 
