@@ -6,6 +6,7 @@ use Exception;
 use Phinx\Db\Adapter\AdapterFactory;
 use Phinx\Db\Table;
 use Reflection;
+use ReflectionClass;
 use think\console\Command;
 use think\console\Input;
 use think\console\input\Argument;
@@ -36,7 +37,9 @@ class Migrate extends Command
             if(!$input->hasOption('model')) throw new Exception('--model need');
             $connection = $input->hasOption('conn') ? $input->getOption('conn') : '';
             if($input->hasOption('model')){
-                $model = invoke($input->getOption('model'));
+                $model = new ReflectionClass($input->getOption('model'));
+                preg_match_all('/@var\s+string\s+((name|options|columns|indexes|foreignkeys)\s+(\{[^\n]{0,}))/')
+                // $model = invoke($input->getOption('model'));
                 $tableName = $model->db()->getTable();
                 $tableSchema = $model->getTableSchema();
                 if(!$connection) $connection = $model->getConnection();
@@ -47,13 +50,13 @@ class Migrate extends Command
             $scheamInfo = $table->exists() ? Db::connect($connection)->getSchemaInfo($tableName, true) : [];
             // var_dump($scheamInfo); die;
             foreach($tableSchema['columns'] as $col){
-                if(!$table->exists() || !$table->hasColumn($col['column']))
-                    $table->addColumn($col['column'], $col['type'], $col['options']??[]);
+                if(!$table->exists() || !$table->hasColumn($col['name']))
+                    $table->addColumn($col['name'], $col['type'], $col['options']??[]);
                 else
-                    $table->changeColumn($col['column'], $col['type'], $col['options']??[]);
+                    $table->changeColumn($col['name'], $col['type'], $col['options']??[]);
                 if($scheamInfo){
                     foreach($scheamInfo['fields'] as $ke => $field){
-                        if($col['column'] == $field )
+                        if($col['name'] == $field )
                             unset($scheamInfo['fields'][$ke]);
                     }
                 }

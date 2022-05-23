@@ -19,19 +19,20 @@ requrest header或者param 加入-table参数 直接实现表的 index、save、
 
 # 功能二
 ### 根据模型字段定义修改表，参数参考 think-migrate
-在模型实现 getTableSchema 方法
-
+在模型加入注释
 ```php
-public function getTableSchema()
-{
-    return [
-        'name' => 'test',
-        'columns' => [
-            ['name'=> 'test', 'type'=>'string', 'options'=>['limit'=>50]],
-            ['name'=> 'create_time', 'type'=>'integer', 'options'=>['null'=> true, 'comment'=>'添加时间']],
-        ]
-    ];
-}
+/**
+ * Test Class
+ * @var string name test 
+ * @var string options {"id":false,"primary_key":["test_id","user_id"],"engine":"MyISAM","collation":"utf8_general_ci"}
+ * @var string columns {"name":"test_id","type":"integer"}
+ * @var string columns {"name":"user_id","type":"integer"}
+ * @var string columns {"name":"name","type":"string","options":{"limit":50,"comment":"标题"}}
+ * @var string columns {"name":"status","type":"boolean","options":{"limit":1},"comment":"状态"}
+ * @var string columns {"name":"create_time","type":"integer","options":{"null":true,"comment":"添加时间"}}
+ * @var string indexes {}
+ * @var string foreignkeys {}
+ */
 ```
 
 执行命令 php think migrate:model --model app\\model\\test 实现表的创建与修改
