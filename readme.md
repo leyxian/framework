@@ -36,4 +36,5 @@ requrest header或者param 加入-table参数 直接实现表的 index、save、
  */
 ```
 
-执行命令 php think migrate:model --model app\\\model\\\Demo 实现表的创建与修改
+执行命令 php think migrate:model 更新所有模型表
+执行命令 php think migrate:model --model app\\\model\\\Demo 指定模型更新表

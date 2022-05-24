@@ -30,23 +30,42 @@ class Migrate extends Command
     {
         $output->writeln('执行开始');
         try{
-            if(!$input->hasOption('model')) throw new Exception('--model need');
             $connection = $input->hasOption('conn') ? $input->getOption('conn') : '';
             if($input->hasOption('model')){
-                $model = new ReflectionClass($input->getOption('model'));
-                preg_match_all('/@var\s+string\s+(connection|table|options|columns|indexes|foreignkeys)([^\n]+)?/', $model->getDocComment(), $mats);
-                foreach($mats[1] as $k => $mat){
-                    $row = trim($mats[2][$k]);
-                    if($row && $row!='{}'){
-                        if(in_array($mat, ['columns', 'indexes', 'foreignkeys']))
-                            $tableSchema[$mat][] = json_decode($row, true) ?? $row;
-                        else
-                            $tableSchema[$mat] = json_decode($row, true) ?? $row;
-                    }                        
+                $this->makeModel($input->getOption('model'), $connection);
+            }else{
+                $files = $this->scanModelDirectory(base_path());
+                foreach($files as $file){
+                    $name = substr($file, strlen(strtr(root_path(), '\\', '/')) - 1);
+                    if (preg_match("|^([\w/]+)/(\w+)/model/(.+)\.php$|i", $name, $mats)) {
+                        [, $namespace, $appname, $classname] = $mats;
+                        $output->writeln(strtr("{$namespace}/{$appname}/model/{$classname}", '/', '\\'));
+                        $this->makeModel(strtr("{$namespace}/{$appname}/model/{$classname}", '/', '\\'), $connection);
+                    }
                 }
-                if(!$connection) $connection = $tableSchema['connection'] ?? '';
-                $tableName = $tableSchema['table'];
             }
+        }catch( \Exception $e ){
+            $output->writeln('执行失败：'.$e->getMessage());
+            $output->writeln($e->getTraceAsString());
+        }
+        $output->writeln('执行完成');
+    }
+
+    protected function makeModel(string $model, string $connection=''){
+        $output = new Output;
+        $tableModel = new ReflectionClass($model);
+        if(preg_match_all('/@var\s+string\s+(connection|table|options|columns|indexes|foreignkeys)([^\n]+)?/', $tableModel->getDocComment(), $mats)){
+            foreach($mats[1] as $k => $mat){
+                $row = trim($mats[2][$k]);
+                if($row && $row!='{}'){
+                    if(in_array($mat, ['columns', 'indexes', 'foreignkeys']))
+                        $tableSchema[$mat][] = json_decode($row, true) ?? $row;
+                    else
+                        $tableSchema[$mat] = json_decode($row, true) ?? $row;
+                }                        
+            }
+            if(!$connection) $connection = $tableSchema['connection'] ?? '';
+            $tableName = $tableSchema['table'];
             $options = $this->getDbConfig($connection);
             $adapter = AdapterFactory::instance()->getAdapter($options['adapter'] ?? '', $options);
             $table = new Table($tableName, $tableSchema['options']??[], $adapter);
@@ -65,13 +84,13 @@ class Migrate extends Command
             }
             if(isset($tableSchema['indexes']) && $tableSchema['indexes']){
                 foreach($tableSchema['indexes'] as $index){
-                    if(!$table->exists() || !$table->hasIndex($index['name']))
+                    if(!$table->exists() || !$table->hasIndex($index['columns']))
                         $table->addIndex($index['columns'], $index['options']??[]);
                 }
             }
             if(isset($tableSchema['foreignkeys']) && $tableSchema['foreignkeys']){
                 foreach($tableSchema['foreignkeys'] as $index){
-                    if(!$table->exists() || !$table->hasIndex($index['name']))
+                    if(!$table->exists() || !$table->hasIndex($index['columns']))
                         $table->addForeignKey($index['columns'], $index['referencedTable'], $index['referencedColumns']??['id'], $index['options'] ??[]);
                 }
             }
@@ -90,17 +109,15 @@ class Migrate extends Command
                 $table->create();
                 $output->writeln('表格 '.$tableName.' 添加成功');
             }
-        }catch( \Exception $e ){
-            $output->writeln('执行失败：'.$e->getMessage());
-            $output->writeln($e->getTraceAsString());
+        }else{
+            $output->writeln('模型 '.$model.' 无注释内容');
         }
-        $output->writeln('执行完成');
     }
 
     protected function getDbConfig(string $connection=''): array
     {
         $default = $connection ?: config('database.default');
-        $config = config('database.connections'.$default);
+        $config = config('database.connections.'.$default);
         if (0 == $config['deploy']) {
             $dbConfig = [
                 'adapter'      => $config['type'],
@@ -124,11 +141,23 @@ class Migrate extends Command
                 'table_prefix' => explode(',', $config['prefix'])[0],
             ];
         }
-
-        $table = $this->app->config->get('database.migration_table', 'migrations');
-
-        $dbConfig['default_migration_table'] = $dbConfig['table_prefix'] . $table;
-
+        // $table = $this->app->config->get('database.migration_table', 'migrations');
+        // $dbConfig['default_migration_table'] = $dbConfig['table_prefix'] . $table;
         return $dbConfig;
+    }
+
+    public function scanModelDirectory(string $path, array $data = [], ?string $ext = 'php'): array
+    {
+        if (file_exists($path)) if (is_file($path) && strpos($path, 'model'.DIRECTORY_SEPARATOR)!==false) {
+            $data[] = strtr($path, '\\', '/');
+        } elseif (is_dir($path)) foreach (scandir($path) as $item) if ($item[0] !== '.') {
+            $real = rtrim($path, '\\/') . DIRECTORY_SEPARATOR . $item;
+            if (is_readable($real)) if (is_dir($real)) {
+                $data = $this->scanModelDirectory($real, $data, $ext);
+            } elseif (is_file($real) && (is_null($ext) || pathinfo($real, 4) === $ext) && strpos($real, 'model'.DIRECTORY_SEPARATOR)!==false) {
+                $data[] = strtr($real, '\\', '/');
+            }
+        }
+        return $data;
     }
 }
