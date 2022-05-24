@@ -38,17 +38,23 @@ class Migrate extends Command
             $connection = $input->hasOption('conn') ? $input->getOption('conn') : '';
             if($input->hasOption('model')){
                 $model = new ReflectionClass($input->getOption('model'));
-                preg_match_all('/@var\s+string\s+((name|options|columns|indexes|foreignkeys)\s+(\{[^\n]{0,}))/')
-                // $model = invoke($input->getOption('model'));
-                $tableName = $model->db()->getTable();
-                $tableSchema = $model->getTableSchema();
-                if(!$connection) $connection = $model->getConnection();
+                preg_match_all('/@var\s+string\s+(connection|table|options|columns|indexes|foreignkeys)([^\n]+)?/', $model->getDocComment(), $mats);
+                foreach($mats[1] as $k => $mat){
+                    $row = trim($mats[2][$k]);
+                    if($row && $row!='{}'){
+                        if(in_array($mat, ['columns', 'indexes', 'foreignkeys']))
+                            $tableSchema[$mat][] = json_decode($row, true) ?? $row;
+                        else
+                            $tableSchema[$mat] = json_decode($row, true) ?? $row;
+                    }                        
+                }
+                if(!$connection) $connection = $tableSchema['connection'] ?? '';
+                $tableName = $tableSchema['table'];
             }
             $options = $this->getDbConfig($connection);
             $adapter = AdapterFactory::instance()->getAdapter($options['adapter'] ?? '', $options);
             $table = new Table($tableName, $tableSchema['options']??[], $adapter);
             $scheamInfo = $table->exists() ? Db::connect($connection)->getSchemaInfo($tableName, true) : [];
-            // var_dump($scheamInfo); die;
             foreach($tableSchema['columns'] as $col){
                 if(!$table->exists() || !$table->hasColumn($col['name']))
                     $table->addColumn($col['name'], $col['type'], $col['options']??[]);

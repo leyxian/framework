@@ -22,15 +22,16 @@ requrest header或者param 加入-table参数 直接实现表的 index、save、
 在模型加入注释
 ```php
 /**
- * Test Class
- * @var string name test 
- * @var string options {"id":false,"primary_key":["test_id","user_id"],"engine":"MyISAM","collation":"utf8_general_ci"}
- * @var string columns {"name":"test_id","type":"integer"}
+ * Demo Class
+ * @var string connection
+ * @var string table demo 
+ * @var string options {"id":false,"primary_key":["demo_id","user_id"],"engine":"MyISAM","collation":"utf8_general_ci"}
+ * @var string columns {"name":"demo_id","type":"integer"}
  * @var string columns {"name":"user_id","type":"integer"}
  * @var string columns {"name":"name","type":"string","options":{"limit":50,"comment":"标题"}}
  * @var string columns {"name":"status","type":"boolean","options":{"limit":1},"comment":"状态"}
  * @var string columns {"name":"create_time","type":"integer","options":{"null":true,"comment":"添加时间"}}
- * @var string indexes {}
+ * @var string indexes
  * @var string foreignkeys {}
  */
 ```
