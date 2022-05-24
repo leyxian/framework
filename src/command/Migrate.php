@@ -5,15 +5,12 @@ namespace edao\command;
 use Exception;
 use Phinx\Db\Adapter\AdapterFactory;
 use Phinx\Db\Table;
-use Reflection;
 use ReflectionClass;
 use think\console\Command;
 use think\console\Input;
-use think\console\input\Argument;
 use think\console\input\Option;
 use think\console\Output;
 use think\facade\Db;
-use ReflectionMethod;
 use think\facade\Log;
 
 class Migrate extends Command
@@ -28,7 +25,6 @@ class Migrate extends Command
 
     /**
      * 创建表示请设置
-     * protected $autoWriteTimestamp = false;
      */
     protected function execute(Input $input, Output $output)
     {
@@ -96,7 +92,7 @@ class Migrate extends Command
             }
         }catch( \Exception $e ){
             $output->writeln('执行失败：'.$e->getMessage());
-            $output->writeln($e->getTraceAsString());            
+            $output->writeln($e->getTraceAsString());
         }
         $output->writeln('执行完成');
     }
@@ -104,7 +100,7 @@ class Migrate extends Command
     protected function getDbConfig(string $connection=''): array
     {
         $default = $connection ?: config('database.default');
-        $config = config("database.connections.{$default}");
+        $config = config('database.connections'.$default);
         if (0 == $config['deploy']) {
             $dbConfig = [
                 'adapter'      => $config['type'],
