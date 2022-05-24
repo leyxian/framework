@@ -18,7 +18,7 @@ requrest header或者param 加入-table参数 直接实现表的 index、save、
 可以在权限认证中间件检测 -table 参数实现对于权限的识别判断，请将权限认证中间件至于本类中间件之前。
 
 # 功能二
-## 根据模型注释修改表，参数参考 think-migrate
+## 根据模型注释修改表结构，参数参考 think-migrate
 在模型加入注释
 ```php
 /**
@@ -37,8 +37,8 @@ requrest header或者param 加入-table参数 直接实现表的 index、save、
 ```
 
 执行命令 php think migrate:model 更新所有模型表
-
-执行命令 php think migrate:model --model app\\\model\\\Demo 指定模型更新表
+* 参数 --model app\\\model\\\Demo 指定模型更新表
+* 参数 --conn app\\\model\\\Demo 指定数据库连接
 
 # 技术支持
 **QQ群：** 67761412
