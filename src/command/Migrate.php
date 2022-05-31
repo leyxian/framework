@@ -141,8 +141,6 @@ class Migrate extends Command
                 'table_prefix' => explode(',', $config['prefix'])[0],
             ];
         }
-        // $table = $this->app->config->get('database.migration_table', 'migrations');
-        // $dbConfig['default_migration_table'] = $dbConfig['table_prefix'] . $table;
         return $dbConfig;
     }
 
