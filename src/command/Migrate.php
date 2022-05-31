@@ -77,7 +77,7 @@ class Migrate extends Command
                     $table->changeColumn($col['name'], $col['type'], $col['options']??[]);
                 if($scheamInfo){
                     foreach($scheamInfo['fields'] as $ke => $field){
-                        if($col['name'] == $field )
+                        if($col['name'] == $field)
                             unset($scheamInfo['fields'][$ke]);
                     }
                 }

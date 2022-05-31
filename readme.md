@@ -1,6 +1,6 @@
 
 # 下载安装
-composer require echodao\framework
+composer require echodao\framework-tool
 
 # 功能一
 > 基于thinkphp，实现对数据库表的增删改查操作

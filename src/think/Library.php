@@ -14,6 +14,6 @@ class Library extends Service
 
     public function register()
     {
-        # code...
+        $this->app->lang->load(dirname(dirname(__FILE__)).'/lang/zh-cn.php');
     }
 }

@@ -1,5 +1,6 @@
 {
-    "name": "echodao/framework",
+    "type": "project",
+    "name": "echodao/framework-tool",
     "version": "0.1.4",
     "description": "",
     "license": "MIT",
